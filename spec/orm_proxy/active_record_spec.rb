@@ -16,7 +16,7 @@ describe ORMProxy::ActiveRecord do
       context "when record doesn't exist" do
         it "adds new record" do
           expect(Shop).to receive(:find_by_id).with(1).and_return(nil)
-          expect(Shop).to receive(:create!).with(attributes, without_protection: true)
+          expect(Shop).to receive(:create!).with(attributes)
 
           proxy.update_db
         end
@@ -30,7 +30,7 @@ describe ORMProxy::ActiveRecord do
           expect(record).to receive(:with_lock).and_yield
           expect(record).to receive(:respond_to?).and_return(true)
           expect(record).to receive(:updated_at).and_return(Time.now - 5*60)
-          expect(record).to receive(:update_attributes).with(attrs_for_update, without_protection: true)
+          expect(record).to receive(:update).with(attrs_for_update)
 
           proxy.update_db
         end
@@ -43,7 +43,7 @@ describe ORMProxy::ActiveRecord do
             expect(record).to receive(:with_lock).and_yield
             expect(record).to receive(:respond_to?).and_return(true)
             expect(record).to receive(:updated_at).and_return(Time.now)
-            expect(record).not_to receive(:update_attributes)
+            expect(record).not_to receive(:update)
 
             proxy.update_db
           end
@@ -52,6 +52,9 @@ describe ORMProxy::ActiveRecord do
 
       context "when habtms is present" do
         class BrandsShop; end
+        class Relation;
+          def self.delete_all; end
+        end
 
         let(:record) { double('record', id: 1) }
         let(:attributes) { {'id' => 1, 'name' => 'test', 'updated_at' => updated_at, '_adds' => {'habtms' => {'brands' => ['1', '2']}}} }
@@ -59,13 +62,13 @@ describe ORMProxy::ActiveRecord do
         before do
           expect(Shop).to receive(:find_by_id).with(1).and_return(record)
           expect(record).to receive(:with_lock).and_yield
-          expect(record).to receive(:update_attributes).with(attrs_for_update, without_protection: true)
+          expect(record).to receive(:update).with(attrs_for_update)
         end
 
         it "deletes all habmts previous values and inserts new passed values" do
-          expect(BrandsShop).to receive(:delete_all).with(["shop_id = ?", 1])
-          expect(BrandsShop).to receive(:create!).with({'shop_id' => 1, 'brand_id' => '1'}, without_protection: true)
-          expect(BrandsShop).to receive(:create!).with({'shop_id' => 1, 'brand_id' => '2'}, without_protection: true)
+          expect(BrandsShop).to receive(:where).with(["shop_id = ?", 1]).and_return(Relation)
+          expect(BrandsShop).to receive(:create!).with({'shop_id' => 1, 'brand_id' => '1'})
+          expect(BrandsShop).to receive(:create!).with({'shop_id' => 1, 'brand_id' => '2'})
 
           proxy.update_db
         end
@@ -78,7 +81,7 @@ describe ORMProxy::ActiveRecord do
 
         it "uses passed model name as model class" do
           expect(NewModel).to receive(:find_by_id).with(1).and_return(nil)
-          expect(NewModel).to receive(:create!).with(attributes, without_protection: true)
+          expect(NewModel).to receive(:create!).with(attributes)
 
           proxy.update_db
         end

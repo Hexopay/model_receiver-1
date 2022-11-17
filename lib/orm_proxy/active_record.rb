@@ -4,11 +4,11 @@ class ORMProxy
     private
 
     def create_record(klass, attrs)
-      klass.create!(attrs, without_protection: true)
+      klass.create!(attrs)
     end
 
     def update_record(record, attrs)
-      record.update_attributes(attrs, without_protection: true)
+      record.update(attrs)
     end
 
   end
