@@ -82,15 +82,18 @@ class ORMProxy
 
     habtms.each do |habtm, values|
       habtm_model = [model_name, habtm].sort.join("_")
-      habtm_class = habtm_model.singularize.classify.constantize
+      habtm_class = habtm_model.singularize.classify.constantize rescue nil
 
-      habtm_class.where(["#{model_key} = ?", record.id]).delete_all
-      habtm_key = habtm_key(habtm)
+      if habtm_class.nil? && record.send(habtm)
+        record.send(habtm) << habtm.classify.constantize.where(id: values)
+      else
+        habtm_class.where(["#{model_key} = ?", record.id]).delete_all
+        habtm_key = habtm_key(habtm)
 
-      values.each do |value|
-        create_record(habtm_class, {model_key => record.id, habtm_key => value})
+        values.each do |value|
+          create_record(habtm_class, {model_key => record.id, habtm_key => value})
+        end
       end
     end
   end
-
 end
