@@ -1,7 +1,7 @@
 model_receiver
 ===============
 
-This gem is written to work with rails 3 or sinatra applications using
+This gem is written to work with rails 3+ or sinatra applications using
 activerecord.
 Add/Update record through ActiveRecord according with received model attributes.
 
@@ -11,7 +11,7 @@ Quick Start For Sinatra Applications
 Add the dependency to your Gemfile
 
 ```ruby
-gem "model_receiver"
+gem "model_receiver", git: "https://github.com/hexopay/model_receiver_ecomm.git"
 ```
 
 Install it...
@@ -20,7 +20,7 @@ Install it...
 bundle
 ```
 
-You probably want to password protect the interface, an easy way is to add something like this
+You probably want to password protect the interface, an easy way is to add something like this:
 
 ```ruby
 require 'model_receiver'
@@ -49,7 +49,7 @@ module YourSinatra
 end
 ```
 
-Add a route to your applications to config.ru file
+Add a route to your applications to `config.ru` file
 
 ```ruby
 run Rack::URLMap.new({
@@ -58,13 +58,42 @@ run Rack::URLMap.new({
 })
 ```
 
+Quick Start For Rails 7 Applications
+------------------------------------
+
+Add the dependency to your Gemfile:
+
+```ruby
+gem "model_receiver", git: "https://github.com/hexopay/model_receiver_ecomm.git", branch: 'feature/DEV-29/allow-to-update-habtm-join-tables'
+```
+
+Install it:
+
+```ruby
+bundle
+```
+
+Add a route to your application for accessing the interface (`config/routes.rb`):
+
+```ruby
+match "/model_receiver" => ModelReceiver::App, :anchor => false
+```
+
+To password protect the interface you should add this to `config/initializers/model_receiver.rb`:
+
+```ruby
+ModelReceiver::App.use Rack::Auth::Basic do |username, password|
+  username == Settings.sync_service.username && password == Settings.sync_service.password
+end
+```
+
 Quick Start For Rails 3 Applications
 ------------------------------------
 
 Add the dependency to your Gemfile
 
 ```ruby
-gem "model_receiver"
+gem "model_receiver", git: "https://github.com/hexopay/model_receiver_ecomm.git"
 ```
 
 Install it...
@@ -79,7 +108,7 @@ Add a route to your application for accessing the interface
 match "/model_receiver" => ModelReceiver::App, :anchor => false
 ```
 
-You probably want to password protect the interface, an easy way is to add something like this your config.ru file
+You probably want to password protect the interface, an easy way is to add this to your `config.ru` file:
 
 ```ruby
 if Rails.env.production?
