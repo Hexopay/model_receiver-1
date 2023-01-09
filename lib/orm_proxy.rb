@@ -85,6 +85,7 @@ class ORMProxy
       habtm_class = habtm_model.singularize.classify.constantize rescue nil
 
       if habtm_class.nil? && record.send(habtm)
+        record.send(habtm) = [] unless record.send(habtm).empty?
         record.send(habtm) << habtm.classify.constantize.where(id: values)
       else
         habtm_class.where(["#{model_key} = ?", record.id]).delete_all
